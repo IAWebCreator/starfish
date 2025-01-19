@@ -1,0 +1,8 @@
+# Add these lines if they don't exist
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 
+node_modules
+node_modules
