@@ -38,4 +38,14 @@ export interface Activation {
   activation_status: 'pending' | 'active' | 'expired'
   created_at?: string
   updated_at?: string
+}
+
+export interface GeneratedWeb {
+  id: number;
+  wallet_address: string;
+  github_repo_url: string;
+  subdomain: string;
+  web_generated_url: string;
+  created_at: string;
+  updated_at: string;
 } 

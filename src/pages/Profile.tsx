@@ -1,4 +1,4 @@
-import { Box, Button, Container, Typography, Card, CardContent, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, ToggleButton, ToggleButtonGroup, Checkbox } from "@mui/material";
+import { Box, Button, Container, Typography, Card, CardContent, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, ToggleButton, ToggleButtonGroup, Checkbox, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ConnectWallet from '../components/ConnectWallet';
 import { useWallet } from '../context/WalletContext';
@@ -8,7 +8,9 @@ import { BLOCKCHAIN_CONFIG } from '../config/blockchain';
 import { ethers } from 'ethers';
 import { BlockchainService } from '../services/blockchainService';
 import { styled } from '@mui/material/styles';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Language } from '@mui/icons-material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { Tab } from '@mui/material';
 
 interface Agent {
   id: number;
@@ -34,6 +36,14 @@ interface DurationOption {
   value: string;
   label: string;
   cost: string;
+}
+
+interface GeneratedWeb {
+  id: number;
+  web_generated_url: string;
+  created_at: string;
+  github_repo_url: string;
+  subdomain: string;
 }
 
 const durationOptions: DurationOption[] = [
@@ -73,22 +83,31 @@ const StyledTitle = styled(Typography)(() => ({
   }
 }));
 
-const StyledSubtitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 600,
-  color: theme.palette.primary.main,
-  position: 'relative',
-  paddingBottom: theme.spacing(2),
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: '30px',
-    height: '2px',
-    background: 'linear-gradient(90deg, rgba(25, 118, 210, 0.7), rgba(25, 118, 210, 0.3))',
-    borderRadius: '1px',
-  }
+// Add new styled components for the tabs
+const StyledTabList = styled(TabList)(({ theme }) => ({
+  borderBottom: 'none',
+  '& .MuiTab-root': {
+    textTransform: 'none',
+    fontSize: '1rem',
+    fontWeight: 500,
+    minWidth: 'auto',
+    padding: '8px 16px',
+    color: theme.palette.text.secondary,
+    '&.Mui-selected': {
+      color: theme.palette.primary.main,
+      borderBottom: `2px solid ${theme.palette.primary.main}`,
+    },
+    '& .MuiChip-root': {
+      marginLeft: theme.spacing(1),
+      backgroundColor: 'rgba(25, 118, 210, 0.1)',
+      color: theme.palette.primary.main,
+    },
+  },
 }));
+
+const StyledTabPanel = styled(TabPanel)({
+  padding: '24px 0',
+});
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -104,25 +123,42 @@ const Profile = () => {
   const [reactivationSuccess, setReactivationSuccess] = useState<string | null>(null);
   const [openAgreementDialog, setOpenAgreementDialog] = useState(false);
   const [agreementChecked, setAgreementChecked] = useState(false);
+  const [generatedWebs, setGeneratedWebs] = useState<GeneratedWeb[]>([]);
+  const [loadingWebs, setLoadingWebs] = useState(false);
+  const [websError, setWebsError] = useState<string | null>(null);
+  const [selectedTab, setSelectedTab] = useState('all'); // 'all', 'agents', 'websites'
 
   useEffect(() => {
-    const fetchAgents = async () => {
+    const fetchUserData = async () => {
       if (!isConnected || !address) return;
       
       setLoading(true);
+      setLoadingWebs(true);
       setError(null);
+      setWebsError(null);
+
       try {
-        const data = await DatabaseService.getUserAgents(address);
-        setAgents(data);
+        console.log('Fetching user data for address:', address);
+        const [agentsData, websData] = await Promise.all([
+          DatabaseService.getUserAgents(address),
+          DatabaseService.getUserGeneratedWebs(address)
+        ]);
+        
+        console.log('Fetched agents:', agentsData);
+        console.log('Fetched websites:', websData);
+        
+        setAgents(agentsData);
+        setGeneratedWebs(websData);
       } catch (err) {
-        setError('Failed to load agents');
-        console.error(err);
+        console.error('Error fetching user data:', err);
+        setError('Failed to load user data');
       } finally {
         setLoading(false);
+        setLoadingWebs(false);
       }
     };
 
-    fetchAgents();
+    fetchUserData();
   }, [isConnected, address]);
 
   const getStatusColor = (status: string) => {
@@ -363,20 +399,410 @@ const Profile = () => {
     return text.slice(0, maxLength) + '...';
   };
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue);
+  };
+
+  const renderContent = () => {
+    if (!isConnected) {
+      return (
+        <Box sx={{ textAlign: "center" }}>
+          <Typography variant="body1">
+            Please connect your wallet to view your profile
+          </Typography>
+        </Box>
+      );
+    }
+
+    // Add loading state for initial data fetch
+    if (loading && loadingWebs) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      );
+    }
+
+    return (
+      <TabContext value={selectedTab}>
+        <Box>
+          <StyledTabList 
+            onChange={handleTabChange} 
+            aria-label="profile sections"
+            sx={{ mb: 3 }}
+          >
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  All
+                  <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
+                    <Chip 
+                      size="small" 
+                      label={agents.length} 
+                      sx={{ 
+                        backgroundColor: 'primary.main',
+                        color: 'white',
+                      }} 
+                    />
+                    <Chip 
+                      size="small" 
+                      label={generatedWebs.length}
+                      sx={{ 
+                        backgroundColor: 'secondary.main',
+                        color: 'white',
+                      }} 
+                    />
+                  </Box>
+                </Box>
+              }
+              value="all"
+            />
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  AI Agents
+                  {agents.length > 0 && (
+                    <Chip 
+                      size="small" 
+                      label={agents.length}
+                      sx={{ ml: 1 }}
+                    />
+                  )}
+                </Box>
+              }
+              value="agents"
+            />
+            <Tab 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  Websites
+                  {generatedWebs.length > 0 && (
+                    <Chip 
+                      size="small" 
+                      label={generatedWebs.length}
+                      sx={{ ml: 1 }}
+                    />
+                  )}
+                </Box>
+              }
+              value="websites"
+            />
+          </StyledTabList>
+
+          <StyledTabPanel value="all">
+            <Grid container direction="column" spacing={6}>
+              {/* AI Agents Section */}
+              <Grid item>
+                <Box sx={{ 
+                  pb: 2, 
+                  mb: 3, 
+                  borderBottom: '1px solid',
+                  borderColor: 'divider'
+                }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 500,
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    AI Agents
+                    {agents.length > 0 && (
+                      <Chip 
+                        size="small" 
+                        label={agents.length}
+                        sx={{ 
+                          backgroundColor: 'primary.main',
+                          color: 'white',
+                        }} 
+                      />
+                    )}
+                  </Typography>
+                </Box>
+                {renderAgents()}
+              </Grid>
+
+              {/* Websites Section */}
+              <Grid item>
+                <Box sx={{ 
+                  pb: 2, 
+                  mb: 3, 
+                  borderBottom: '1px solid',
+                  borderColor: 'divider'
+                }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      fontWeight: 500,
+                      color: 'primary.main',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    Generated Websites
+                    {generatedWebs.length > 0 && (
+                      <Chip 
+                        size="small" 
+                        label={generatedWebs.length}
+                        sx={{ 
+                          backgroundColor: 'secondary.main',
+                          color: 'white',
+                        }} 
+                      />
+                    )}
+                  </Typography>
+                </Box>
+                {renderWebsites()}
+              </Grid>
+            </Grid>
+          </StyledTabPanel>
+
+          <StyledTabPanel value="agents">
+            {renderAgents()}
+          </StyledTabPanel>
+
+          <StyledTabPanel value="websites">
+            {renderWebsites()}
+          </StyledTabPanel>
+        </Box>
+      </TabContext>
+    );
+  };
+
+  // Extract the agents rendering logic into a separate function
+  const renderAgents = () => {
+    if (loading) {
+      return <Typography>Loading your agents...</Typography>;
+    }
+
+    if (error) {
+      return <Typography color="error">{error}</Typography>;
+    }
+
+    if (agents.length === 0) {
+      return (
+        <Box sx={{ textAlign: "center", mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            You haven't created any agents yet.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/create-agent")}
+            sx={{ mt: 2 }}
+          >
+            Create Your First Agent
+          </Button>
+        </Box>
+      );
+    }
+
+    return (
+      <Grid container spacing={3}>
+        {sortAgents(agents).map((agent) => (
+          <Grid item xs={12} md={6} key={agent.id}>
+            <Card>
+              <CardContent>
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {agent.name || 'Unnamed Agent'}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Created: {new Date(agent.created_at).toLocaleDateString()}
+                  </Typography>
+                  <Typography 
+                    variant="body1" 
+                    paragraph
+                    sx={{
+                      mb: 2,
+                      minHeight: '48px', // Ensure consistent height
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {truncateText(agent.description, 30)}
+                  </Typography>
+                  {agent.activations?.map((activation, index) => (
+                    <Box key={index} sx={{ mt: 1 }}>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                        <Chip
+                          label={`Status: ${activation.activation_status}`}
+                          color={getStatusColor(activation.activation_status) as any}
+                          size="small"
+                        />
+                        <Chip
+                          label={`Duration: ${activation.duration_hours}h`}
+                          variant="outlined"
+                          size="small"
+                        />
+                      </Box>
+                      
+                      {activation.activation_status === 'active' && (
+                        <Box sx={{ mt: 1, backgroundColor: 'rgba(0, 150, 0, 0.05)', p: 1, borderRadius: 1 }}>
+                          {activation.telegram_group_name && (
+                            <Typography variant="body2" sx={{ mb: 0.5 }}>
+                              Group: {activation.telegram_group_name}
+                            </Typography>
+                          )}
+                          {activation.activation_start && (
+                            <Typography variant="body2" color="text.secondary">
+                              Start: {new Date(activation.activation_start).toLocaleString(undefined, { 
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                              })} UTC
+                            </Typography>
+                          )}
+                          {activation.activation_end && (
+                            <Typography variant="body2" color="text.secondary">
+                              End: {new Date(activation.activation_end).toLocaleString(undefined, { 
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                              })} UTC
+                            </Typography>
+                          )}
+                        </Box>
+                      )}
+
+                      {activation.verification_code && activation.activation_status === 'pending' && (
+                        <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
+                          Verification Code: {activation.verification_code}
+                        </Typography>
+                      )}
+                          
+                      {activation.telegram_authorized_user && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          Authorized User: {activation.telegram_authorized_user}
+                        </Typography>
+                      )}
+
+                      {activation.activation_status === 'expired' && (
+                        <Box>
+                          {activation.telegram_group_name && (
+                            <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
+                               active it in: {activation.telegram_group_name}
+                            </Typography>
+                          )}
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            onClick={() => handleReactivate(agent.id)}
+                            sx={{ mt: 1 }}
+                          >
+                            Reactivate
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
+  // Extract the websites rendering logic into a separate function
+  const renderWebsites = () => {
+    if (loadingWebs) {
+      return <Typography>Loading your websites...</Typography>;
+    }
+
+    if (websError) {
+      return <Typography color="error">{websError}</Typography>;
+    }
+
+    if (generatedWebs.length === 0) {
+      return (
+        <Box sx={{ textAlign: "center", mt: 2 }}>
+          <Typography variant="body1" gutterBottom>
+            You haven't generated any websites yet.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate("/create-website")}
+            sx={{ mt: 2 }}
+          >
+            Create Your First Website
+          </Button>
+        </Box>
+      );
+    }
+
+    return (
+      <Grid container spacing={3}>
+        {generatedWebs.map((web) => (
+          <Grid item xs={12} md={6} key={web.id}>
+            <Card>
+              <CardContent>
+                <Box sx={{ mb: 2 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    <Language color="primary" />
+                    <Typography variant="h6">
+                      {web.subdomain}
+                    </Typography>
+                  </Box>
+                  
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Created: {new Date(web.created_at).toLocaleDateString()}
+                  </Typography>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      href={web.web_generated_url}
+                      target="_blank"
+                      sx={{ mr: 1, mb: 1 }}
+                    >
+                      Visit Website
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      href={web.github_repo_url}
+                      target="_blank"
+                      sx={{ mb: 1 }}
+                    >
+                      View Source
+                    </Button>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
   return (
     <Container maxWidth="lg">
-      <Box sx={{ 
-        mt: 6, 
-        mb: 8,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-      }}>
+      <Box sx={{ mt: 6, mb: 8 }}>
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
           gap: 2,
-          mb: 2,
+          mb: 4,
         }}>
           <StyledButton
             onClick={() => navigate('/')}
@@ -400,162 +826,8 @@ const Profile = () => {
         </Box>
 
         <ConnectWallet />
-
-        {isConnected ? (
-          <>
-            <StyledSubtitle 
-              variant="h5" 
-              sx={{ 
-                alignSelf: 'flex-start',
-                mt: 4, 
-                mb: 3,
-              }}
-            >
-              Your AI Agents
-            </StyledSubtitle>
-            
-            {loading ? (
-              <Typography>Loading your agents...</Typography>
-            ) : error ? (
-              <Typography color="error">{error}</Typography>
-            ) : agents.length > 0 ? (
-              <Grid container spacing={3}>
-                {sortAgents(agents).map((agent) => (
-                  <Grid item xs={12} md={6} key={agent.id}>
-                    <Card>
-                      <CardContent>
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="h6" gutterBottom>
-                            {agent.name || 'Unnamed Agent'}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" gutterBottom>
-                            Created: {new Date(agent.created_at).toLocaleDateString()}
-                          </Typography>
-                          <Typography 
-                            variant="body1" 
-                            paragraph
-                            sx={{
-                              mb: 2,
-                              minHeight: '48px', // Ensure consistent height
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                            }}
-                          >
-                            {truncateText(agent.description, 30)}
-                          </Typography>
-                          {agent.activations?.map((activation, index) => (
-                            <Box key={index} sx={{ mt: 1 }}>
-                              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-                                <Chip
-                                  label={`Status: ${activation.activation_status}`}
-                                  color={getStatusColor(activation.activation_status) as any}
-                                  size="small"
-                                />
-                                <Chip
-                                  label={`Duration: ${activation.duration_hours}h`}
-                                  variant="outlined"
-                                  size="small"
-                                />
-                              </Box>
-                              
-                              {activation.activation_status === 'active' && (
-                                <Box sx={{ mt: 1, backgroundColor: 'rgba(0, 150, 0, 0.05)', p: 1, borderRadius: 1 }}>
-                                  {activation.telegram_group_name && (
-                                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                                      Group: {activation.telegram_group_name}
-                                    </Typography>
-                                  )}
-                                  {activation.activation_start && (
-                                    <Typography variant="body2" color="text.secondary">
-                                      Start: {new Date(activation.activation_start).toLocaleString(undefined, { 
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        hour12: false
-                                      })} UTC
-                                    </Typography>
-                                  )}
-                                  {activation.activation_end && (
-                                    <Typography variant="body2" color="text.secondary">
-                                      End: {new Date(activation.activation_end).toLocaleString(undefined, { 
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        hour12: false
-                                      })} UTC
-                                    </Typography>
-                                  )}
-                                </Box>
-                              )}
-
-                              {activation.verification_code && activation.activation_status === 'pending' && (
-                                <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
-                                  Verification Code: {activation.verification_code}
-                                </Typography>
-                              )}
-                              
-                              {activation.telegram_authorized_user && (
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                  Authorized User: {activation.telegram_authorized_user}
-                                </Typography>
-                              )}
-
-                              {activation.activation_status === 'expired' && (
-                                <Box>
-                                  {activation.telegram_group_name && (
-                                    <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
-                                     active it in: {activation.telegram_group_name}
-                                    </Typography>
-                                  )}
-                                  <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    onClick={() => handleReactivate(agent.id)}
-                                    sx={{ mt: 1 }}
-                                  >
-                                    Reactivate
-                                  </Button>
-                                </Box>
-                              )}
-                            </Box>
-                          ))}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            ) : (
-              <Box sx={{ textAlign: "center", mt: 2 }}>
-                <Typography variant="body1" gutterBottom>
-                  You haven't created any agents yet.
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => navigate("/create-agent")}
-                  sx={{ mt: 2 }}
-                >
-                  Create Your First Agent
-                </Button>
-              </Box>
-            )}
-          </>
-        ) : (
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body1">
-              Please connect your wallet to view your profile
-            </Typography>
-          </Box>
-        )}
+        
+        {renderContent()}
       </Box>
       <AgreementDialog />
       <DurationDialog />

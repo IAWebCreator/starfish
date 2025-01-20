@@ -134,8 +134,9 @@ const Home: React.FC = () => {
   const handleGetStarted = (type: string) => {
     if (type === 'Create AI Telegram Agents') {
       navigate('/create-agent');
+    } else if (type === 'Create Website') {
+      navigate('/web-generator');
     }
-    // ... handle other card types
   };
 
   return (

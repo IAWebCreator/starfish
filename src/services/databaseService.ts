@@ -1,5 +1,5 @@
 import { supabase } from '../config/supabase'
-import type { User, Bot, Agent, Activation } from '../types/database'
+import type { User, Bot, Agent, Activation, GeneratedWeb } from '../types/database'
 
 export class DatabaseService {
   // User operations
@@ -385,6 +385,22 @@ export class DatabaseService {
       console.log(`Activation ${activationId} reactivated for ${durationHours} hours.`);
     } catch (error) {
       console.error('Error in reactivateAgent:', error);
+      throw error;
+    }
+  }
+
+  public static async getUserGeneratedWebs(walletAddress: string): Promise<GeneratedWeb[]> {
+    try {
+      const { data, error } = await supabase
+        .from('web_generated_data')
+        .select('*')
+        .eq('wallet_address', walletAddress)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user generated webs:', error);
       throw error;
     }
   }
