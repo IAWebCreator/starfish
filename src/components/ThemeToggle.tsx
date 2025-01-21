@@ -1,34 +1,23 @@
-import { IconButton, Tooltip } from '@mui/material';
+import { IconButton } from '@mui/material';
+import { DarkMode, LightMode } from '@mui/icons-material';
 import { useTheme } from '../context/ThemeContext';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
 
 const ThemeToggle = () => {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <Tooltip title={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}>
-      <IconButton
-        onClick={toggleTheme}
-        sx={{
-          position: 'fixed',
-          right: 20,
-          top: 20,
-          backgroundColor: (theme) => 
-            theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.05)'
-              : 'rgba(0, 0, 0, 0.05)',
-          '&:hover': {
-            backgroundColor: (theme) =>
-              theme.palette.mode === 'dark'
-                ? 'rgba(255, 255, 255, 0.1)'
-                : 'rgba(0, 0, 0, 0.1)',
-          },
-        }}
-      >
-        {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
-      </IconButton>
-    </Tooltip>
+    <IconButton 
+      onClick={toggleTheme}
+      sx={{ 
+        color: 'var(--text-color)',
+        '&:hover': {
+          color: 'var(--primary-color)',
+        }
+      }}
+    >
+      {isDark ? <LightMode /> : <DarkMode />}
+    </IconButton>
   );
 };
 
