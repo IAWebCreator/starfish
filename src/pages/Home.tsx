@@ -1,5 +1,4 @@
 import React from 'react';
-import FeatureCard from '../components/FeatureCard';
 import ConnectWallet from '../components/ConnectWallet';
 import { useWallet } from '../context/WalletContext';
 import { FeatureCard as FeatureCardType } from '../types/types';
@@ -8,22 +7,30 @@ import { Container, Box, Button, Typography } from "@mui/material";
 import { styled } from '@mui/material/styles';
 
 // Add styled button component for consistency
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1, 4),
-  borderRadius: theme.spacing(1),
+const StyledButton = styled(Button)({
+  padding: '1rem 2rem',
+  borderRadius: 'var(--border-radius)',
   textTransform: 'none',
   fontSize: '1rem',
-  backgroundColor: theme.palette.mode === 'dark' 
-    ? 'rgba(25, 118, 210, 0.15)'
-    : 'rgba(25, 118, 210, 0.85)',
-  color: theme.palette.mode === 'dark' ? '#90caf9' : '#ffffff',
-  '&:hover': {
-    backgroundColor: theme.palette.mode === 'dark'
-      ? 'rgba(25, 118, 210, 0.25)'
-      : 'rgba(25, 118, 210, 0.95)',
+  fontWeight: 600,
+  transition: 'var(--transition)',
+  '&.MuiButton-contained': {
+    backgroundColor: 'var(--button-primary)',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#333333',
+    },
   },
-  minWidth: '160px',
-}));
+  '&.MuiButton-outlined': {
+    borderColor: 'var(--button-primary)',
+    color: 'var(--button-primary)',
+    borderWidth: '2px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      borderWidth: '2px',
+    },
+  },
+});
 
 // Add styled grid container
 const StyledGrid = styled('div')(({ theme }) => ({
@@ -39,59 +46,32 @@ const StyledGrid = styled('div')(({ theme }) => ({
 // Add styled components for the brand title
 const BrandContainer = styled(Box)(({ theme }) => ({
   textAlign: 'center',
-  marginBottom: theme.spacing(6),
+  marginBottom: theme.spacing(8),
   position: 'relative',
-  padding: theme.spacing(2),
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: '-10px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '60px',
-    height: '4px',
-    background: 'linear-gradient(90deg, #1976d2, #64b5f6)',
-    borderRadius: '2px',
-  }
+  padding: theme.spacing(4),
 }));
 
-const BrandTitle = styled(Typography)(({ theme }) => ({
-  fontSize: '3.5rem',
-  fontWeight: 700,
-  letterSpacing: '0.02em',
-  marginBottom: theme.spacing(1),
-  background: theme.palette.mode === 'dark'
-    ? 'linear-gradient(135deg, #90caf9 0%, #42a5f5 50%, #90caf9 100%)'
-    : 'linear-gradient(135deg, #1976d2 0%, #64b5f6 50%, #1976d2 100%)',
-  backgroundSize: '200% auto',
-  color: 'transparent',
-  WebkitBackgroundClip: 'text',
-  backgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  animation: 'shine 3s ease-in-out infinite',
-  '@keyframes shine': {
-    '0%': {
-      backgroundPosition: '0% center',
-    },
-    '50%': {
-      backgroundPosition: '100% center',
-    },
-    '100%': {
-      backgroundPosition: '0% center',
-    },
+const BrandTitle = styled(Typography)({
+  fontSize: '4rem',
+  fontWeight: 800,
+  letterSpacing: '-0.02em',
+  color: 'var(--primary-color)',
+  marginBottom: '1rem',
+  '@media (max-width: 768px)': {
+    fontSize: '3rem',
   },
-  [theme.breakpoints.down('sm')]: {
-    fontSize: '2.5rem',
-  },
-}));
+});
 
-const BrandSubtitle = styled(Typography)(({ theme }) => ({
-  fontSize: '1.1rem',
-  color: theme.palette.text.secondary,
+const BrandSubtitle = styled(Typography)({
+  fontSize: '1.3rem',
+  color: 'var(--text-light)',
   maxWidth: '600px',
   margin: '0 auto',
-  marginTop: theme.spacing(2),
-}));
+  lineHeight: 1.6,
+  '@media (max-width: 768px)': {
+    fontSize: '1.15rem',
+  },
+});
 
 const features: FeatureCardType[] = [
   {
@@ -107,21 +87,6 @@ const features: FeatureCardType[] = [
     icon: "🌐"
   }
 ];
-
-const ConnectPrompt = styled('div')(({ theme }) => ({
-  textAlign: 'center',
-  marginTop: '4rem',
-  padding: '3rem',
-  backgroundColor: theme.palette.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.05)'
-    : theme.palette.background.paper,
-  borderRadius: theme.spacing(2),
-  '& p': {
-    color: theme.palette.text.secondary,
-    fontSize: '1.25rem',
-    margin: 0,
-  },
-}));
 
 const Home: React.FC = () => {
   const { isConnected } = useWallet();
@@ -140,14 +105,19 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth="lg" sx={{ position: 'relative' }}>
+      {/* Wallet Container */}
+      <Box className="wallet-container">
+        <ConnectWallet />
+      </Box>
+
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 4,
-          my: 4,
+          gap: 6,
+          py: 8,
         }}
       >
         <BrandContainer>
@@ -158,34 +128,62 @@ const Home: React.FC = () => {
             AI Agents for Your Community in one click
           </BrandSubtitle>
         </BrandContainer>
-
-        <ConnectWallet />
         
         {isConnected ? (
           <>
             <StyledGrid>
               {features.map((feature) => (
-                <FeatureCard
+                <Box 
                   key={feature.id}
-                  feature={feature}
+                  className="feature-card"
                   onClick={() => handleFeatureClick(feature.id)}
-                  onGetStarted={() => handleGetStarted(feature.title)}
-                  StyledButton={StyledButton}
-                />
+                >
+                  <span className="feature-icon">{feature.icon}</span>
+                  <Typography variant="h3" component="h3">
+                    {feature.title}
+                  </Typography>
+                  <Typography variant="body1">
+                    {feature.description}
+                  </Typography>
+                  <StyledButton
+                    variant="contained"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleGetStarted(feature.title);
+                    }}
+                    sx={{ mt: 'auto' }}
+                  >
+                    Get Started
+                  </StyledButton>
+                </Box>
               ))}
             </StyledGrid>
 
             <StyledButton
-              variant="contained"
+              variant="outlined"
               onClick={() => navigate("/profile")}
+              sx={{ mt: 4 }}
             >
               Go to Profile
             </StyledButton>
           </>
         ) : (
-          <ConnectPrompt>
-            <p>Please connect your wallet to access Starfish Labs features</p>
-          </ConnectPrompt>
+          <Box 
+            className="connect-prompt"
+            sx={{
+              background: 'var(--background-soft)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              maxWidth: '600px',
+              width: '100%',
+              mt: 4,
+            }}
+          >
+            <Typography variant="body1">
+              Please connect your wallet to access Starfish Labs features
+            </Typography>
+          </Box>
         )}
       </Box>
     </Container>

@@ -27,74 +27,75 @@ import ConnectWallet from '../components/ConnectWallet';
 
 const steps = ['Basic Information', 'Social Media', 'Review'];
 
-// Reuse the same styled components from CreateAgent for consistency
-const StyledPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(5),
-  margin: theme.spacing(3, 0),
-  borderRadius: theme.spacing(3),
-  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08)',
-  background: theme.palette.background.paper,
-  position: 'relative',
-  overflow: 'hidden',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: '4px',
-    background: 'linear-gradient(90deg, rgba(25, 118, 210, 0.7), rgba(25, 118, 210, 0.4))',
+// Add styled components at the top
+const StyledTitle = styled(Typography)({
+  fontSize: '3rem',
+  fontWeight: 800,
+  letterSpacing: '-0.02em',
+  color: 'var(--primary-color)',
+  marginBottom: '2rem',
+  '@media (max-width: 768px)': {
+    fontSize: '2.5rem',
   },
-}));
+});
 
-const StyledStepper = styled(Stepper)(({ theme }) => ({
-  '.MuiStepLabel-root': {
-    '.MuiStepLabel-label': {
-      fontWeight: 500,
-      '&.Mui-active': {
-        color: theme.palette.primary.main,
-        fontWeight: 600,
-      },
-      '&.Mui-completed': {
-        color: theme.palette.success.main,
-        fontWeight: 600,
-      },
-    },
+const StyledPaper = styled(Paper)({
+  background: 'var(--background-soft)',
+  '-webkit-backdrop-filter': 'blur(10px)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: 'var(--border-radius)',
+  padding: '2.5rem',
+  margin: '2rem 0',
+  border: '1px solid rgba(0, 0, 0, 0.1)',
+  transition: 'var(--transition)',
+  '&:hover': {
+    boxShadow: 'var(--shadow-md)',
   },
-  '.MuiStepIcon-root': {
+});
+
+const StyledStepper = styled(Stepper)({
+  '& .MuiStepLabel-label': {
+    fontSize: '1rem',
+    fontWeight: 500,
+    color: 'var(--text-light)',
     '&.Mui-active': {
-      color: theme.palette.primary.main,
+      color: 'var(--primary-color)',
+      fontWeight: 600,
     },
     '&.Mui-completed': {
-      color: theme.palette.success.main,
+      color: 'var(--primary-color)',
     },
   },
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1.5, 4),
-  borderRadius: theme.spacing(1.5),
-  textTransform: 'none',
-  fontSize: '1rem',
-  fontWeight: 500,
-  boxShadow: 'none',
-  '&:hover': {
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+  '& .MuiStepIcon-root': {
+    color: 'var(--text-light)',
+    '&.Mui-active, &.Mui-completed': {
+      color: 'var(--primary-color)',
+    },
   },
-  transition: 'all 0.2s ease',
-}));
+});
 
-const StyledFormSection = styled(Box)(({ theme }) => ({
+const StyledFormSection = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
-  gap: theme.spacing(4),
-  padding: theme.spacing(2, 0),
+  gap: '2rem',
   '& .MuiTypography-h6': {
+    fontSize: '1.5rem',
     fontWeight: 600,
-    color: theme.palette.text.primary,
-    marginBottom: theme.spacing(1),
+    color: 'var(--primary-color)',
+    marginBottom: '1rem',
   },
-}));
+  '& .MuiTextField-root': {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: 'var(--border-radius)',
+      '&:hover .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'var(--primary-color)',
+      },
+      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+        borderColor: 'var(--primary-color)',
+      },
+    },
+  },
+});
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -108,26 +109,23 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-const ImagePreview = styled(Box)(({ theme }) => ({
+const ImagePreview = styled(Box)({
   width: '100%',
   height: '200px',
-  borderRadius: theme.spacing(1),
-  border: `2px dashed ${theme.palette.divider}`,
+  border: '2px dashed rgba(0, 0, 0, 0.1)',
+  borderRadius: 'var(--border-radius)',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: theme.spacing(2),
   cursor: 'pointer',
-  transition: 'all 0.2s ease',
-  backgroundColor: theme.palette.background.paper,
+  transition: 'var(--transition)',
+  background: 'var(--background-soft)',
   '&:hover': {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.mode === 'dark' 
-      ? 'rgba(25, 118, 210, 0.08)'
-      : 'rgba(25, 118, 210, 0.04)',
+    borderColor: 'var(--primary-color)',
+    background: 'rgba(0, 0, 0, 0.02)',
   },
-}));
+});
 
 const SummaryItem = ({ label, value }: { label: string; value: string }) => (
   <Box sx={{ display: 'flex', mb: 2 }}>
@@ -183,6 +181,54 @@ const validateSocialMediaUrl = (url: string, type: string): string => {
   }
   return '';
 };
+
+// Add StyledDialog component
+const StyledDialog = styled(Dialog)({
+  '& .MuiDialog-paper': {
+    borderRadius: 'var(--border-radius)',
+    background: 'var(--background-soft)',
+    backdropFilter: 'blur(10px)',
+    '-webkit-backdrop-filter': 'blur(10px)',
+    border: '1px solid rgba(0, 0, 0, 0.1)',
+  },
+  '& .MuiDialogTitle-root': {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: 'var(--primary-color)',
+  },
+  '& .MuiDialogContent-root': {
+    padding: '2rem',
+  },
+  '& .MuiDialogActions-root': {
+    padding: '1rem 2rem',
+  },
+});
+
+// Add StyledButton component
+const StyledButton = styled(Button)({
+  padding: '1rem 2rem',
+  borderRadius: 'var(--border-radius)',
+  textTransform: 'none',
+  fontSize: '1rem',
+  fontWeight: 600,
+  transition: 'var(--transition)',
+  '&.MuiButton-contained': {
+    backgroundColor: 'var(--button-primary)',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#333333',
+    },
+  },
+  '&.MuiButton-outlined': {
+    borderColor: 'var(--button-primary)',
+    color: 'var(--button-primary)',
+    borderWidth: '2px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      borderWidth: '2px',
+    },
+  },
+});
 
 const WebGenerator = () => {
   const navigate = useNavigate();
@@ -619,113 +665,134 @@ const WebGenerator = () => {
   };
 
   return (
-    <>
-      <Container maxWidth="md">
+    <Container maxWidth="md">
+      <Box sx={{ 
+        mt: 6, 
+        mb: 8,
+        position: 'relative',
+      }}>
+        {/* Back button */}
         <Box sx={{ 
-          mt: 6, 
-          mb: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
+          position: 'absolute',
+          top: '-3rem',
+          left: 0,
         }}>
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2,
-            mb: 2,
-          }}>
-            <StyledButton
-              onClick={handleBackToHome}
-              startIcon={<ArrowBack />}
-              variant="outlined"
+          <StyledButton
+            onClick={handleBackToHome}
+            startIcon={<ArrowBack />}
+            variant="outlined"
+            sx={{
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+              '&:hover': {
+                borderColor: 'var(--primary-color)',
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
+            Back
+          </StyledButton>
+        </Box>
+
+        {/* Title */}
+        <StyledTitle variant="h1" align="center">
+          Website Generator
+        </StyledTitle>
+
+        {isConnected ? (
+          <>
+            <StyledStepper 
+              activeStep={activeStep} 
+              alternativeLabel
+              sx={{ mb: 6 }}
             >
-              Back
-            </StyledButton>
+              {steps.map((label) => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </StyledStepper>
+
+            <StyledPaper>
+              <StyledFormSection>
+                {getStepContent(activeStep)}
+                
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'flex-end',
+                  gap: 2,
+                  mt: 4,
+                  pt: 3,
+                  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                }}>
+                  <StyledButton
+                    disabled={activeStep === 0}
+                    onClick={handleBack}
+                    variant="outlined"
+                  >
+                    Back
+                  </StyledButton>
+                  {activeStep === steps.length - 1 ? (
+                    <StyledButton
+                      variant="contained"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={20} color="inherit" />
+                          {processingStatus || 'Processing...'}
+                        </Box>
+                      ) : (
+                        'Generate Website'
+                      )}
+                    </StyledButton>
+                  ) : (
+                    <StyledButton
+                      variant="contained"
+                      onClick={handleNext}
+                      disabled={!isStepValid(activeStep)}
+                    >
+                      Next
+                    </StyledButton>
+                  )}
+                </Box>
+              </StyledFormSection>
+            </StyledPaper>
+          </>
+        ) : (
+          <Box 
+            className="connect-prompt"
+            sx={{
+              background: 'var(--background-soft)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              maxWidth: '600px',
+              width: '100%',
+              margin: '0 auto',
+              mt: 4,
+              p: 4,
+              borderRadius: 'var(--border-radius)',
+              textAlign: 'center',
+            }}
+          >
             <Typography 
-              variant="h4" 
-              component="h1"
+              variant="h6" 
+              gutterBottom 
               sx={{ 
-                fontWeight: 600,
-                background: 'linear-gradient(90deg, #1976d2, #64b5f6)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+                color: 'var(--text-light)',
+                mb: 3,
               }}
             >
-              Website Generator
+              Please connect your wallet to access the Website Generator
             </Typography>
+            <ConnectWallet />
           </Box>
+        )}
+      </Box>
 
-          {isConnected ? (
-            <>
-              <StyledStepper activeStep={activeStep} alternativeLabel>
-                {steps.map((label) => (
-                  <Step key={label}>
-                    <StepLabel>{label}</StepLabel>
-                  </Step>
-                ))}
-              </StyledStepper>
-
-              <StyledPaper>
-                <StyledFormSection>
-                  {getStepContent(activeStep)}
-                  
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'flex-end',
-                    gap: 2,
-                    mt: 4,
-                    pt: 3,
-                    borderTop: '1px solid',
-                    borderColor: 'divider',
-                  }}>
-                    <StyledButton
-                      disabled={activeStep === 0}
-                      onClick={handleBack}
-                      variant="outlined"
-                    >
-                      Back
-                    </StyledButton>
-                    {activeStep === steps.length - 1 ? (
-                      <StyledButton
-                        variant="contained"
-                        color="primary"
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
-                            {processingStatus || 'Processing...'}
-                          </>
-                        ) : (
-                          'Generate Website'
-                        )}
-                      </StyledButton>
-                    ) : (
-                      <StyledButton
-                        variant="contained"
-                        onClick={handleNext}
-                        disabled={!isStepValid(activeStep)}
-                      >
-                        Next
-                      </StyledButton>
-                    )}
-                  </Box>
-                </StyledFormSection>
-              </StyledPaper>
-            </>
-          ) : (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" gutterBottom color="text.secondary">
-                Please connect your wallet to access the Website Generator
-              </Typography>
-              <ConnectWallet />
-            </Box>
-          )}
-        </Box>
-      </Container>
-
-      <Dialog
+      {/* Success Dialog */}
+      <StyledDialog
         open={showSuccessDialog}
         onClose={() => {
           setShowSuccessDialog(false);
@@ -736,7 +803,7 @@ const WebGenerator = () => {
       >
         <DialogTitle sx={{ 
           pb: 1,
-          color: 'success.main',
+          color: 'var(--primary-color)',
           display: 'flex',
           alignItems: 'center',
           gap: 1 
@@ -746,13 +813,13 @@ const WebGenerator = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="body1">
+            <Typography variant="body1" sx={{ color: 'var(--text-color)' }}>
               The process of generating the web page has started. Please wait a few minutes for it to complete. 
               You can check your profile to view the page once it's ready.
             </Typography>
             {transactionHash && (
               <Box sx={{ mt: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                <Typography variant="subtitle2" sx={{ color: 'var(--text-light)' }} gutterBottom>
                   Transaction Hash:
                 </Typography>
                 <Link
@@ -761,7 +828,7 @@ const WebGenerator = () => {
                   rel="noopener noreferrer"
                   sx={{ 
                     wordBreak: 'break-all',
-                    color: 'primary.main'
+                    color: 'var(--primary-color)',
                   }}
                 >
                   {transactionHash}
@@ -780,13 +847,12 @@ const WebGenerator = () => {
           <StyledButton
             variant="contained"
             onClick={handleGoToProfile}
-            color="primary"
           >
             Go to Profile
           </StyledButton>
         </DialogActions>
-      </Dialog>
-    </>
+      </StyledDialog>
+    </Container>
   );
 };
 

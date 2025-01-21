@@ -1,4 +1,4 @@
-import { Box, Button, Container, Typography, Card, CardContent, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, ToggleButton, ToggleButtonGroup, Checkbox, CircularProgress } from "@mui/material";
+import { Box, Button, Container, Typography, Card, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, ToggleButton, ToggleButtonGroup, Checkbox, CircularProgress } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ConnectWallet from '../components/ConnectWallet';
 import { useWallet } from '../context/WalletContext';
@@ -11,6 +11,8 @@ import { styled } from '@mui/material/styles';
 import { ArrowBack, Language } from '@mui/icons-material';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Tab } from '@mui/material';
+import { ButtonProps } from '@mui/material';
+import { ElementType } from 'react';
 
 interface Agent {
   id: number;
@@ -52,61 +54,171 @@ const durationOptions: DurationOption[] = [
   { value: '24', label: '24 Hours', cost: BLOCKCHAIN_CONFIG.TRANSACTION.AGENT_CREATION_COST['24'] }
 ];
 
-// Add the same styled button from Home page
-const StyledButton = styled(Button)(({ theme }) => ({
-  padding: theme.spacing(1, 4),
-  borderRadius: theme.spacing(1),
+// Define a type that includes both button and anchor props
+type StyledButtonProps = ButtonProps & {
+  component?: ElementType;
+  href?: string;
+  target?: string;
+  rel?: string;
+};
+
+// Update the StyledButton component with the new type
+const StyledButton = styled(Button)<StyledButtonProps>({
+  padding: '1rem 2rem',
+  borderRadius: 'var(--border-radius)',
   textTransform: 'none',
   fontSize: '1rem',
-  backgroundColor: 'rgba(25, 118, 210, 0.85)',
-  '&:hover': {
-    backgroundColor: 'rgba(25, 118, 210, 0.95)',
-  },
-  minWidth: '160px',
-}));
-
-const StyledTitle = styled(Typography)(() => ({
   fontWeight: 600,
-  background: 'linear-gradient(90deg, #1976d2, #64b5f6)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  position: 'relative',
-  '&::after': {
-    content: '""',
-    position: 'absolute',
-    bottom: '-8px',
-    left: 0,
-    width: '40px',
-    height: '3px',
-    background: 'linear-gradient(90deg, rgba(25, 118, 210, 0.7), rgba(25, 118, 210, 0.4))',
-    borderRadius: '2px',
-  }
-}));
+  transition: 'var(--transition)',
+  '&.MuiButton-contained': {
+    backgroundColor: 'var(--button-primary)',
+    color: 'white',
+    '&:hover': {
+      backgroundColor: '#333333',
+    },
+  },
+  '&.MuiButton-outlined': {
+    borderColor: 'var(--button-primary)',
+    color: 'var(--button-primary)',
+    borderWidth: '2px',
+    '&:hover': {
+      backgroundColor: 'rgba(0, 0, 0, 0.05)',
+      borderWidth: '2px',
+    },
+  },
+});
 
-// Add new styled components for the tabs
-const StyledTabList = styled(TabList)(({ theme }) => ({
-  borderBottom: 'none',
+const StyledTitle = styled(Typography)({
+  fontSize: '3rem',
+  fontWeight: 800,
+  letterSpacing: '-0.02em',
+  color: 'var(--primary-color)',
+  marginBottom: '2rem',
+  '@media (max-width: 768px)': {
+    fontSize: '2.5rem',
+  },
+});
+
+// Update StyledTabList to use the new color scheme
+const StyledTabList = styled(TabList)({
+  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
   '& .MuiTab-root': {
     textTransform: 'none',
     fontSize: '1rem',
     fontWeight: 500,
     minWidth: 'auto',
-    padding: '8px 16px',
-    color: theme.palette.text.secondary,
+    padding: '1rem 1.5rem',
+    color: 'var(--text-light)',
     '&.Mui-selected': {
-      color: theme.palette.primary.main,
-      borderBottom: `2px solid ${theme.palette.primary.main}`,
+      color: 'var(--primary-color)',
+      fontWeight: 600,
     },
     '& .MuiChip-root': {
-      marginLeft: theme.spacing(1),
-      backgroundColor: 'rgba(25, 118, 210, 0.1)',
-      color: theme.palette.primary.main,
+      marginLeft: '0.5rem',
+      background: 'var(--star-color)',
+      color: 'var(--primary-color)',
+      fontWeight: 500,
     },
   },
-}));
+});
 
+// Update StyledTabPanel for consistent spacing
 const StyledTabPanel = styled(TabPanel)({
-  padding: '24px 0',
+  padding: '32px 0',
+});
+
+// Update StyledCard with more refined styling
+const StyledCard = styled(Card)({
+  background: 'var(--background-soft)',
+  '-webkit-backdrop-filter': 'blur(10px)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: 'var(--border-radius)',
+  border: '1px solid rgba(0, 0, 0, 0.1)',
+  transition: 'var(--transition)',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: 'var(--shadow-md)',
+  },
+});
+
+// Add styled components for card elements
+const CardHeader = styled(Box)({
+  padding: '1.5rem',
+  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+});
+
+const CardBody = styled(Box)({
+  padding: '1.5rem',
+});
+
+const CardFooter = styled(Box)({
+  padding: '1.5rem',
+  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+  background: 'rgba(0, 0, 0, 0.02)',
+});
+
+// Update StyledChip with the new design
+const StyledChip = styled(Chip)({
+  borderRadius: '4px',
+  fontWeight: 500,
+  '&.MuiChip-filled': {
+    background: 'var(--star-color)',
+    color: 'var(--primary-color)',
+  },
+  '&.MuiChip-outlined': {
+    borderColor: 'var(--primary-color)',
+    color: 'var(--primary-color)',
+  },
+  '&.MuiChip-sizeSmall': {
+    height: '24px',
+    fontSize: '0.75rem',
+  },
+});
+
+// Add a new styled component for dialog styling
+const StyledDialog = styled(Dialog)({
+  '& .MuiDialog-paper': {
+    borderRadius: 'var(--border-radius)',
+    background: 'var(--background-soft)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(0, 0, 0, 0.1)',
+  },
+  '& .MuiDialogTitle-root': {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: 'var(--primary-color)',
+  },
+  '& .MuiDialogContent-root': {
+    padding: '2rem',
+  },
+  '& .MuiDialogActions-root': {
+    padding: '1rem 2rem',
+  },
+});
+
+// Add a new styled component for toggle buttons
+const StyledToggleButton = styled(ToggleButton)({
+  padding: '1rem',
+  borderRadius: 'var(--border-radius)',
+  border: '1px solid rgba(0, 0, 0, 0.1)',
+  '&.Mui-selected': {
+    backgroundColor: 'var(--star-color)',
+    color: 'var(--primary-color)',
+    '&:hover': {
+      backgroundColor: 'var(--star-color)',
+    },
+  },
+});
+
+const SectionTitle = styled(Typography)({
+  fontSize: '1.5rem',
+  fontWeight: 700,
+  color: 'var(--primary-color)',
+  marginBottom: '1.5rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem',
 });
 
 const Profile = () => {
@@ -275,7 +387,7 @@ const Profile = () => {
   };
 
   const DurationDialog = () => (
-    <Dialog open={openDurationDialog} onClose={handleCloseDurationDialog}>
+    <StyledDialog open={openDurationDialog} onClose={handleCloseDurationDialog}>
       <DialogTitle>Select Reactivation Duration</DialogTitle>
       <DialogContent>
         <Box sx={{ width: '100%', mt: 2 }}>
@@ -287,7 +399,7 @@ const Profile = () => {
             sx={{ width: '100%', display: 'flex' }}
           >
             {durationOptions.map((option) => (
-              <ToggleButton 
+              <StyledToggleButton 
                 key={option.value} 
                 value={option.value}
                 sx={{ 
@@ -301,7 +413,7 @@ const Profile = () => {
                 <Typography variant="caption" color="text.secondary">
                   {option.cost} ETH
                 </Typography>
-              </ToggleButton>
+              </StyledToggleButton>
             ))}
           </ToggleButtonGroup>
         </Box>
@@ -317,21 +429,26 @@ const Profile = () => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleCloseDurationDialog} disabled={isProcessing}>Cancel</Button>
-        <Button 
+        <StyledButton 
+          onClick={handleCloseDurationDialog} 
+          disabled={isProcessing}
+          variant="outlined"
+        >
+          Cancel
+        </StyledButton>
+        <StyledButton 
           onClick={handleConfirmReactivation} 
-          variant="contained" 
-          color="primary" 
+          variant="contained"
           disabled={isProcessing}
         >
           {isProcessing ? 'Processing...' : 'Confirm'}
-        </Button>
+        </StyledButton>
       </DialogActions>
-    </Dialog>
+    </StyledDialog>
   );
 
   const AgreementDialog = () => (
-    <Dialog open={openAgreementDialog} onClose={handleAgreementCancel}>
+    <StyledDialog open={openAgreementDialog} onClose={handleAgreementCancel}>
       <DialogTitle>Important Notice</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 2 }}>
@@ -354,17 +471,21 @@ const Profile = () => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleAgreementCancel}>Cancel</Button>
-        <Button 
+        <StyledButton 
+          onClick={handleAgreementCancel}
+          variant="outlined"
+        >
+          Cancel
+        </StyledButton>
+        <StyledButton 
           onClick={handleAgreementConfirm}
-          variant="contained" 
-          color="primary"
+          variant="contained"
           disabled={!agreementChecked}
         >
           Proceed
-        </Button>
+        </StyledButton>
       </DialogActions>
-    </Dialog>
+    </StyledDialog>
   );
 
   const sortAgents = (agents: Agent[]) => {
@@ -391,12 +512,6 @@ const Profile = () => {
       // If status is the same, sort by creation date (most recent first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
-  };
-
-  // Add helper function to truncate text
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
   };
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -436,7 +551,7 @@ const Profile = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   All
                   <Box sx={{ display: 'flex', gap: 0.5, ml: 1 }}>
-                    <Chip 
+                    <StyledChip 
                       size="small" 
                       label={agents.length} 
                       sx={{ 
@@ -444,7 +559,7 @@ const Profile = () => {
                         color: 'white',
                       }} 
                     />
-                    <Chip 
+                    <StyledChip 
                       size="small" 
                       label={generatedWebs.length}
                       sx={{ 
@@ -462,7 +577,7 @@ const Profile = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   AI Agents
                   {agents.length > 0 && (
-                    <Chip 
+                    <StyledChip 
                       size="small" 
                       label={agents.length}
                       sx={{ ml: 1 }}
@@ -477,7 +592,7 @@ const Profile = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   Websites
                   {generatedWebs.length > 0 && (
-                    <Chip 
+                    <StyledChip 
                       size="small" 
                       label={generatedWebs.length}
                       sx={{ ml: 1 }}
@@ -496,31 +611,21 @@ const Profile = () => {
                 <Box sx={{ 
                   pb: 2, 
                   mb: 3, 
-                  borderBottom: '1px solid',
-                  borderColor: 'divider'
+                  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
                 }}>
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
-                      fontWeight: 500,
-                      color: 'primary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
-                    }}
-                  >
+                  <SectionTitle>
                     AI Agents
                     {agents.length > 0 && (
-                      <Chip 
+                      <StyledChip 
                         size="small" 
                         label={agents.length}
                         sx={{ 
-                          backgroundColor: 'primary.main',
+                          backgroundColor: 'var(--primary-color)',
                           color: 'white',
                         }} 
                       />
                     )}
-                  </Typography>
+                  </SectionTitle>
                 </Box>
                 {renderAgents()}
               </Grid>
@@ -530,31 +635,21 @@ const Profile = () => {
                 <Box sx={{ 
                   pb: 2, 
                   mb: 3, 
-                  borderBottom: '1px solid',
-                  borderColor: 'divider'
+                  borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
                 }}>
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
-                      fontWeight: 500,
-                      color: 'primary.main',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1
-                    }}
-                  >
+                  <SectionTitle>
                     Generated Websites
                     {generatedWebs.length > 0 && (
-                      <Chip 
+                      <StyledChip 
                         size="small" 
                         label={generatedWebs.length}
                         sx={{ 
-                          backgroundColor: 'secondary.main',
+                          backgroundColor: 'var(--primary-color)',
                           color: 'white',
                         }} 
                       />
                     )}
-                  </Typography>
+                  </SectionTitle>
                 </Box>
                 {renderWebsites()}
               </Grid>
@@ -576,27 +671,50 @@ const Profile = () => {
   // Extract the agents rendering logic into a separate function
   const renderAgents = () => {
     if (loading) {
-      return <Typography>Loading your agents...</Typography>;
+      return (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          py: 4 
+        }}>
+          <CircularProgress sx={{ color: 'var(--primary-color)' }} />
+        </Box>
+      );
     }
 
     if (error) {
-      return <Typography color="error">{error}</Typography>;
+      return (
+        <Box sx={{ 
+          textAlign: 'center',
+          color: 'var(--text-light)',
+          py: 4,
+        }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
     }
 
     if (agents.length === 0) {
       return (
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Typography variant="body1" gutterBottom>
+        <Box sx={{ 
+          textAlign: 'center',
+          py: 4,
+        }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'var(--text-light)',
+              mb: 2,
+            }}
+          >
             You haven't created any agents yet.
           </Typography>
-          <Button
+          <StyledButton
             variant="contained"
-            color="primary"
             onClick={() => navigate("/create-agent")}
-            sx={{ mt: 2 }}
           >
             Create Your First Agent
-          </Button>
+          </StyledButton>
         </Box>
       );
     }
@@ -605,144 +723,123 @@ const Profile = () => {
       <Grid container spacing={3}>
         {sortAgents(agents).map((agent) => (
           <Grid item xs={12} md={6} key={agent.id}>
-            <Card>
-              <CardContent>
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    {agent.name || 'Unnamed Agent'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Created: {new Date(agent.created_at).toLocaleDateString()}
-                  </Typography>
-                  <Typography 
-                    variant="body1" 
-                    paragraph
-                    sx={{
-                      mb: 2,
-                      minHeight: '48px', // Ensure consistent height
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
+            <StyledCard>
+              <CardHeader>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    fontWeight: 600,
+                    color: 'var(--primary-color)',
+                    mb: 1,
+                  }}
+                >
+                  {agent.name || 'Unnamed Agent'}
+                </Typography>
+                <Typography 
+                  variant="body2" 
+                  sx={{ color: 'var(--text-light)' }}
+                >
+                  Created: {new Date(agent.created_at).toLocaleDateString()}
+                </Typography>
+              </CardHeader>
+
+              <CardBody>
+                <Typography 
+                  variant="body1"
+                  sx={{
+                    color: 'var(--text-color)',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    mb: 2,
+                  }}
+                >
+                  {agent.description}
+                </Typography>
+
+                {agent.activations?.[0] && (
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <StyledChip
+                      label={`Status: ${agent.activations[0].activation_status}`}
+                      color={getStatusColor(agent.activations[0].activation_status) as any}
+                      size="small"
+                    />
+                    <StyledChip
+                      label={`${agent.activations[0].duration_hours}h`}
+                      variant="outlined"
+                      size="small"
+                    />
+                  </Box>
+                )}
+              </CardBody>
+
+              {agent.activations?.[0]?.activation_status === 'expired' && (
+                <CardFooter>
+                  <StyledButton
+                    variant="contained"
+                    size="small"
+                    onClick={() => handleReactivate(agent.id)}
+                    fullWidth
                   >
-                    {truncateText(agent.description, 30)}
-                  </Typography>
-                  {agent.activations?.map((activation, index) => (
-                    <Box key={index} sx={{ mt: 1 }}>
-                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-                        <Chip
-                          label={`Status: ${activation.activation_status}`}
-                          color={getStatusColor(activation.activation_status) as any}
-                          size="small"
-                        />
-                        <Chip
-                          label={`Duration: ${activation.duration_hours}h`}
-                          variant="outlined"
-                          size="small"
-                        />
-                      </Box>
-                      
-                      {activation.activation_status === 'active' && (
-                        <Box sx={{ mt: 1, backgroundColor: 'rgba(0, 150, 0, 0.05)', p: 1, borderRadius: 1 }}>
-                          {activation.telegram_group_name && (
-                            <Typography variant="body2" sx={{ mb: 0.5 }}>
-                              Group: {activation.telegram_group_name}
-                            </Typography>
-                          )}
-                          {activation.activation_start && (
-                            <Typography variant="body2" color="text.secondary">
-                              Start: {new Date(activation.activation_start).toLocaleString(undefined, { 
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                              })} UTC
-                            </Typography>
-                          )}
-                          {activation.activation_end && (
-                            <Typography variant="body2" color="text.secondary">
-                              End: {new Date(activation.activation_end).toLocaleString(undefined, { 
-                                year: 'numeric',
-                                month: '2-digit',
-                                day: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: false
-                              })} UTC
-                            </Typography>
-                          )}
-                        </Box>
-                      )}
-
-                      {activation.verification_code && activation.activation_status === 'pending' && (
-                        <Typography variant="body2" sx={{ mt: 1, fontFamily: 'monospace' }}>
-                          Verification Code: {activation.verification_code}
-                        </Typography>
-                      )}
-                          
-                      {activation.telegram_authorized_user && (
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                          Authorized User: {activation.telegram_authorized_user}
-                        </Typography>
-                      )}
-
-                      {activation.activation_status === 'expired' && (
-                        <Box>
-                          {activation.telegram_group_name && (
-                            <Typography variant="body2" sx={{ mb: 1, color: 'text.secondary' }}>
-                               active it in: {activation.telegram_group_name}
-                            </Typography>
-                          )}
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            size="small"
-                            onClick={() => handleReactivate(agent.id)}
-                            sx={{ mt: 1 }}
-                          >
-                            Reactivate
-                          </Button>
-                        </Box>
-                      )}
-                    </Box>
-                  ))}
-                </Box>
-              </CardContent>
-            </Card>
+                    Reactivate
+                  </StyledButton>
+                </CardFooter>
+              )}
+            </StyledCard>
           </Grid>
         ))}
       </Grid>
     );
   };
 
-  // Extract the websites rendering logic into a separate function
+  // Update renderWebsites function to match renderAgents style
   const renderWebsites = () => {
     if (loadingWebs) {
-      return <Typography>Loading your websites...</Typography>;
+      return (
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'center',
+          py: 4 
+        }}>
+          <CircularProgress sx={{ color: 'var(--primary-color)' }} />
+        </Box>
+      );
     }
 
     if (websError) {
-      return <Typography color="error">{websError}</Typography>;
+      return (
+        <Box sx={{ 
+          textAlign: 'center',
+          color: 'var(--text-light)',
+          py: 4,
+        }}>
+          <Typography color="error">{websError}</Typography>
+        </Box>
+      );
     }
 
     if (generatedWebs.length === 0) {
       return (
-        <Box sx={{ textAlign: "center", mt: 2 }}>
-          <Typography variant="body1" gutterBottom>
+        <Box sx={{ 
+          textAlign: 'center',
+          py: 4,
+        }}>
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'var(--text-light)',
+              mb: 2,
+            }}
+          >
             You haven't generated any websites yet.
           </Typography>
-          <Button
+          <StyledButton
             variant="contained"
-            color="primary"
-            onClick={() => navigate("/create-website")}
-            sx={{ mt: 2 }}
+            onClick={() => navigate("/web-generator")}
           >
             Create Your First Website
-          </Button>
+          </StyledButton>
         </Box>
       );
     }
@@ -751,44 +848,45 @@ const Profile = () => {
       <Grid container spacing={3}>
         {generatedWebs.map((web) => (
           <Grid item xs={12} md={6} key={web.id}>
-            <Card>
-              <CardContent>
-                <Box sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    <Language color="primary" />
-                    <Typography variant="h6">
-                      {web.subdomain}
-                    </Typography>
-                  </Box>
-                  
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Created: {new Date(web.created_at).toLocaleDateString()}
+            <StyledCard>
+              <CardHeader>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Language sx={{ color: 'var(--primary-color)' }} />
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontWeight: 600,
+                      color: 'var(--primary-color)',
+                    }}
+                  >
+                    {web.subdomain}
                   </Typography>
-
-                  <Box sx={{ mt: 2 }}>
-                    <Button
-                      variant="outlined"
-                      color="primary"
-                      size="small"
-                      href={web.web_generated_url}
-                      target="_blank"
-                      sx={{ mr: 1, mb: 1 }}
-                    >
-                      Visit Website
-                    </Button>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      href={web.github_repo_url}
-                      target="_blank"
-                      sx={{ mb: 1 }}
-                    >
-                      View Source
-                    </Button>
-                  </Box>
                 </Box>
-              </CardContent>
-            </Card>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: 'var(--text-light)',
+                    mt: 1,
+                  }}
+                >
+                  Created: {new Date(web.created_at).toLocaleDateString()}
+                </Typography>
+              </CardHeader>
+
+              <CardFooter>
+                <StyledButton
+                  variant="contained"
+                  size="small"
+                  href={web.web_generated_url}
+                  component="a"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  fullWidth
+                >
+                  Visit Website
+                </StyledButton>
+              </CardFooter>
+            </StyledCard>
           </Grid>
         ))}
       </Grid>
@@ -797,36 +895,45 @@ const Profile = () => {
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ mt: 6, mb: 8 }}>
+      <Box sx={{ 
+        mt: 6, 
+        mb: 8,
+        position: 'relative',
+      }}>
+        {/* Back button */}
         <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: 2,
-          mb: 4,
+          position: 'absolute',
+          top: '-3rem',
+          left: 0,
         }}>
           <StyledButton
             onClick={() => navigate('/')}
             startIcon={<ArrowBack />}
             variant="outlined"
             sx={{
-              borderColor: 'divider',
+              borderColor: 'rgba(0, 0, 0, 0.1)',
               '&:hover': {
-                borderColor: 'primary.main',
+                borderColor: 'var(--primary-color)',
                 backgroundColor: 'transparent',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               },
-              color: 'text.primary',
             }}
           >
             Back
           </StyledButton>
-          <StyledTitle variant="h4">
-            My Profile
-          </StyledTitle>
         </Box>
 
-        <ConnectWallet />
-        
+        {/* Title and Wallet */}
+        <Box sx={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          mb: 6,
+        }}>
+          <StyledTitle>My Profile</StyledTitle>
+          <ConnectWallet />
+        </Box>
+
+        {/* Main Content */}
         {renderContent()}
       </Box>
       <AgreementDialog />

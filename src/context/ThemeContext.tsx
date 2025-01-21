@@ -42,35 +42,44 @@ const createAppTheme = (mode: 'light' | 'dark') => createTheme({
   },
 });
 
-const ThemeContext = createContext({ 
-  isDarkMode: true, 
-  toggleTheme: () => {} 
-});
+type Theme = 'light' | 'dark';
 
-export const useTheme = () => useContext(ThemeContext);
+interface ThemeContextType {
+  theme: Theme;
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isDarkMode, setIsDarkMode] = useState(true);
-  const theme = createAppTheme(isDarkMode ? 'dark' : 'light');
-
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    localStorage.setItem('darkMode', (!isDarkMode).toString());
-  };
+  const [theme, setTheme] = useState<Theme>(() => {
+    const savedTheme = localStorage.getItem('theme');
+    return (savedTheme as Theme) || 'light';
+  });
 
   useEffect(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    if (savedMode !== null) {
-      setIsDarkMode(savedMode === 'true');
-    }
-  }, []);
+    localStorage.setItem('theme', theme);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <MUIThemeProvider theme={theme}>
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      <MUIThemeProvider theme={createAppTheme(theme)}>
         <CssBaseline />
         {children}
       </MUIThemeProvider>
     </ThemeContext.Provider>
   );
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
 }; 
