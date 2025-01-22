@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import ConnectWallet from '../components/ConnectWallet';
 import { useWallet } from '../context/WalletContext';
 import { FeatureCard as FeatureCardType } from '../types/types';
 import { useNavigate } from 'react-router-dom';
 import { Container, Box, Button, Typography } from "@mui/material";
 import { styled } from '@mui/material/styles';
+import { animationService } from '../services/animationService';
+import { Global } from '@emotion/react';
+import { animationStyles } from '../styles/animations';
 
 // Add styled button component for consistency
 const StyledButton = styled(Button)({
@@ -91,7 +94,40 @@ const features: FeatureCardType[] = [
 const Home: React.FC = () => {
   const { isConnected } = useWallet();
   const navigate = useNavigate();
+  const backgroundRef = useRef<HTMLDivElement>(null);
   
+  useEffect(() => {
+    if (backgroundRef.current) {
+      // Initialize stars
+      animationService.createStars(backgroundRef.current);
+      
+      // Initialize parallax
+      const cleanup = animationService.initParallax();
+      
+      // Initialize scroll animations
+      const observer = animationService.initScrollAnimations();
+      
+      // Observe sections
+      const sections = [
+        document.querySelector('.content'),
+        document.querySelector('.features'),
+        document.querySelector('.cta-section'),
+      ];
+
+      sections.forEach(section => {
+        if (section) {
+          section.classList.add('fade-in');
+          observer.observe(section);
+        }
+      });
+
+      return () => {
+        cleanup();
+        observer.disconnect();
+      };
+    }
+  }, []);
+
   const handleFeatureClick = (featureId: number) => {
     console.log(`Clicked feature ${featureId}`);
   };
@@ -105,88 +141,92 @@ const Home: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ position: 'relative' }}>
-      {/* Wallet Container */}
-      <Box className="wallet-container">
-        <ConnectWallet />
-      </Box>
+    <>
+      <Global styles={animationStyles} />
+      <div ref={backgroundRef} className="background-animation" />
+      <Container maxWidth="lg" sx={{ position: 'relative' }}>
+        {/* Wallet Container */}
+        <Box className="wallet-container">
+          <ConnectWallet />
+        </Box>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 6,
-          py: 8,
-        }}
-      >
-        <BrandContainer>
-          <BrandTitle variant="h1">
-            Starfish Labs
-          </BrandTitle>
-          <BrandSubtitle variant="subtitle1">
-            AI Agents for Your Community in one click
-          </BrandSubtitle>
-        </BrandContainer>
-        
-        {isConnected ? (
-          <>
-            <StyledGrid>
-              {features.map((feature) => (
-                <Box 
-                  key={feature.id}
-                  className="feature-card"
-                  onClick={() => handleFeatureClick(feature.id)}
-                >
-                  <span className="feature-icon">{feature.icon}</span>
-                  <Typography variant="h3" component="h3">
-                    {feature.title}
-                  </Typography>
-                  <Typography variant="body1">
-                    {feature.description}
-                  </Typography>
-                  <StyledButton
-                    variant="contained"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleGetStarted(feature.title);
-                    }}
-                    sx={{ mt: 'auto' }}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            py: 8,
+          }}
+        >
+          <BrandContainer>
+            <BrandTitle variant="h1">
+              Starfish Labs
+            </BrandTitle>
+            <BrandSubtitle variant="subtitle1">
+              AI Agents for Your Community in one click
+            </BrandSubtitle>
+          </BrandContainer>
+          
+          {isConnected ? (
+            <>
+              <StyledGrid>
+                {features.map((feature) => (
+                  <Box 
+                    key={feature.id}
+                    className="feature-card"
+                    onClick={() => handleFeatureClick(feature.id)}
                   >
-                    Get Started
-                  </StyledButton>
-                </Box>
-              ))}
-            </StyledGrid>
+                    <span className="feature-icon">{feature.icon}</span>
+                    <Typography variant="h3" component="h3">
+                      {feature.title}
+                    </Typography>
+                    <Typography variant="body1">
+                      {feature.description}
+                    </Typography>
+                    <StyledButton
+                      variant="contained"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleGetStarted(feature.title);
+                      }}
+                      sx={{ mt: 'auto' }}
+                    >
+                      Get Started
+                    </StyledButton>
+                  </Box>
+                ))}
+              </StyledGrid>
 
-            <StyledButton
-              variant="outlined"
-              onClick={() => navigate("/profile")}
-              sx={{ mt: 4 }}
+              <StyledButton
+                variant="outlined"
+                onClick={() => navigate("/profile")}
+                sx={{ mt: 4 }}
+              >
+                Go to Profile
+              </StyledButton>
+            </>
+          ) : (
+            <Box 
+              className="connect-prompt"
+              sx={{
+                background: 'var(--background-soft)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                maxWidth: '600px',
+                width: '100%',
+                mt: 4,
+              }}
             >
-              Go to Profile
-            </StyledButton>
-          </>
-        ) : (
-          <Box 
-            className="connect-prompt"
-            sx={{
-              background: 'var(--background-soft)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              maxWidth: '600px',
-              width: '100%',
-              mt: 4,
-            }}
-          >
-            <Typography variant="body1">
-              Please connect your wallet to access Starfish Labs features
-            </Typography>
-          </Box>
-        )}
-      </Box>
-    </Container>
+              <Typography variant="body1">
+                Please connect your wallet to access Starfish Labs features
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Container>
+    </>
   );
 };
 

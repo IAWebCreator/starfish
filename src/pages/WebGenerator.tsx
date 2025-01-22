@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Stepper,
@@ -24,6 +24,9 @@ import { useWallet } from '../context/WalletContext';
 import { webGeneratorService } from '../services/webGeneratorService';
 import { blockchainService } from '../services/blockchainService';
 import ConnectWallet from '../components/ConnectWallet';
+import { animationService } from '../services/animationService';
+import { Global } from '@emotion/react';
+import { animationStyles } from '../styles/animations';
 
 const steps = ['Basic Information', 'Social Media', 'Review'];
 
@@ -282,6 +285,38 @@ const WebGenerator = () => {
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<string>('');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const backgroundRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (backgroundRef.current) {
+      // Initialize stars
+      animationService.createStars(backgroundRef.current);
+      
+      // Initialize parallax
+      const cleanup = animationService.initParallax();
+      
+      // Initialize scroll animations
+      const observer = animationService.initScrollAnimations();
+      
+      // Observe sections
+      const sections = [
+        document.querySelector('.content'),
+        document.querySelector('.form-section'),
+      ];
+
+      sections.forEach(section => {
+        if (section) {
+          section.classList.add('fade-in');
+          observer.observe(section);
+        }
+      });
+
+      return () => {
+        cleanup();
+        observer.disconnect();
+      };
+    }
+  }, []);
 
   const handleBackToHome = () => {
     navigate('/');
@@ -700,206 +735,210 @@ const WebGenerator = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ 
-        mt: 6, 
-        mb: 8,
-        position: 'relative',
-      }}>
-        {/* Back button */}
+    <>
+      <Global styles={animationStyles} />
+      <div ref={backgroundRef} className="background-animation" />
+      <Container maxWidth="md">
         <Box sx={{ 
-          position: 'absolute',
-          top: '-3rem',
-          left: 0,
+          mt: 6, 
+          mb: 8,
+          position: 'relative',
         }}>
-          <StyledButton
-            onClick={handleBackToHome}
-            startIcon={<ArrowBack />}
-            variant="outlined"
-            sx={{
-              borderColor: 'rgba(0, 0, 0, 0.1)',
-              '&:hover': {
-                borderColor: 'var(--primary-color)',
-                backgroundColor: 'transparent',
-              },
-            }}
-          >
-            Back
-          </StyledButton>
-        </Box>
-
-        {/* Title */}
-        <StyledTitle variant="h1" align="center">
-          Website Generator
-        </StyledTitle>
-
-        {isConnected ? (
-          <>
-            <StyledStepper 
-              activeStep={activeStep} 
-              alternativeLabel
-              sx={{ mb: 6 }}
-            >
-              {steps.map((label) => (
-                <Step key={label}>
-                  <StepLabel>{label}</StepLabel>
-                </Step>
-              ))}
-            </StyledStepper>
-
-            <StyledPaper>
-              <StyledFormSection>
-                {getStepContent(activeStep)}
-                
-                <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'flex-end',
-                  gap: 2,
-                  mt: 4,
-                  pt: 3,
-                  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
-                }}>
-                  <StyledButton
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    variant="outlined"
-                    sx={{
-                      opacity: activeStep === 0 ? 0.5 : 1,
-                      transition: 'opacity 0.2s ease-in-out',
-                    }}
-                  >
-                    Back
-                  </StyledButton>
-                  {activeStep === steps.length - 1 ? (
-                    <StyledButton
-                      variant="contained"
-                      onClick={handleSubmit}
-                      disabled={isSubmitting}
-                      sx={{
-                        opacity: isSubmitting ? 0.5 : 1,
-                        transition: 'opacity 0.2s ease-in-out',
-                      }}
-                    >
-                      {isSubmitting ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CircularProgress size={20} color="inherit" />
-                          {processingStatus || 'Processing...'}
-                        </Box>
-                      ) : (
-                        'Generate Website'
-                      )}
-                    </StyledButton>
-                  ) : (
-                    <StyledButton
-                      variant="contained"
-                      onClick={handleNext}
-                      disabled={!isStepValid(activeStep)}
-                      sx={{
-                        opacity: !isStepValid(activeStep) ? 0.5 : 1,
-                        transition: 'opacity 0.2s ease-in-out',
-                      }}
-                    >
-                      Next
-                    </StyledButton>
-                  )}
-                </Box>
-              </StyledFormSection>
-            </StyledPaper>
-          </>
-        ) : (
-          <Box 
-            className="connect-prompt"
-            sx={{
-              background: 'var(--background-soft)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              border: '1px solid rgba(0, 0, 0, 0.1)',
-              maxWidth: '600px',
-              width: '100%',
-              margin: '0 auto',
-              mt: 4,
-              p: 4,
-              borderRadius: 'var(--border-radius)',
-              textAlign: 'center',
-            }}
-          >
-            <Typography 
-              variant="h6" 
-              gutterBottom 
-              sx={{ 
-                color: 'var(--text-light)',
-                mb: 3,
+          {/* Back button */}
+          <Box sx={{ 
+            position: 'absolute',
+            top: '-3rem',
+            left: 0,
+          }}>
+            <StyledButton
+              onClick={handleBackToHome}
+              startIcon={<ArrowBack />}
+              variant="outlined"
+              sx={{
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                '&:hover': {
+                  borderColor: 'var(--primary-color)',
+                  backgroundColor: 'transparent',
+                },
               }}
             >
-              Please connect your wallet to access the Website Generator
-            </Typography>
-            <ConnectWallet />
+              Back
+            </StyledButton>
           </Box>
-        )}
-      </Box>
 
-      {/* Success Dialog */}
-      <StyledDialog
-        open={showSuccessDialog}
-        onClose={() => {
-          setShowSuccessDialog(false);
-          setActiveStep(0);
-        }}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ 
-          pb: 1,
-          color: 'var(--primary-color)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1 
-        }}>
-          <Box component="span" sx={{ fontSize: '1.5rem' }}>🎉</Box>
-          Website Generation Started
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="body1" sx={{ color: 'var(--text-color)' }}>
-              The process of generating the web page has started. Please wait a few minutes for it to complete. 
-              You can check your profile to view the page once it's ready.
-            </Typography>
-            {transactionHash && (
-              <Box sx={{ mt: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: 'var(--text-light)' }} gutterBottom>
-                  Transaction Hash:
-                </Typography>
-                <Link
-                  href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  sx={{ 
-                    wordBreak: 'break-all',
-                    color: 'var(--primary-color)',
-                  }}
-                >
-                  {transactionHash}
-                </Link>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ p: 2, pt: 0 }}>
-          <StyledButton
-            variant="outlined"
-            onClick={() => setShowSuccessDialog(false)}
-          >
-            Close
-          </StyledButton>
-          <StyledButton
-            variant="contained"
-            onClick={handleGoToProfile}
-          >
-            Go to Profile
-          </StyledButton>
-        </DialogActions>
-      </StyledDialog>
-    </Container>
+          {/* Title */}
+          <StyledTitle variant="h1" align="center">
+            Website Generator
+          </StyledTitle>
+
+          {isConnected ? (
+            <>
+              <StyledStepper 
+                activeStep={activeStep} 
+                alternativeLabel
+                sx={{ mb: 6 }}
+              >
+                {steps.map((label) => (
+                  <Step key={label}>
+                    <StepLabel>{label}</StepLabel>
+                  </Step>
+                ))}
+              </StyledStepper>
+
+              <StyledPaper>
+                <StyledFormSection>
+                  {getStepContent(activeStep)}
+                  
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                    mt: 4,
+                    pt: 3,
+                    borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                  }}>
+                    <StyledButton
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                      variant="outlined"
+                      sx={{
+                        opacity: activeStep === 0 ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
+                    >
+                      Back
+                    </StyledButton>
+                    {activeStep === steps.length - 1 ? (
+                      <StyledButton
+                        variant="contained"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                        sx={{
+                          opacity: isSubmitting ? 0.5 : 1,
+                          transition: 'opacity 0.2s ease-in-out',
+                        }}
+                      >
+                        {isSubmitting ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={20} color="inherit" />
+                            {processingStatus || 'Processing...'}
+                          </Box>
+                        ) : (
+                          'Generate Website'
+                        )}
+                      </StyledButton>
+                    ) : (
+                      <StyledButton
+                        variant="contained"
+                        onClick={handleNext}
+                        disabled={!isStepValid(activeStep)}
+                        sx={{
+                          opacity: !isStepValid(activeStep) ? 0.5 : 1,
+                          transition: 'opacity 0.2s ease-in-out',
+                        }}
+                      >
+                        Next
+                      </StyledButton>
+                    )}
+                  </Box>
+                </StyledFormSection>
+              </StyledPaper>
+            </>
+          ) : (
+            <Box 
+              className="connect-prompt"
+              sx={{
+                background: 'var(--background-soft)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                maxWidth: '600px',
+                width: '100%',
+                margin: '0 auto',
+                mt: 4,
+                p: 4,
+                borderRadius: 'var(--border-radius)',
+                textAlign: 'center',
+              }}
+            >
+              <Typography 
+                variant="h6" 
+                gutterBottom 
+                sx={{ 
+                  color: 'var(--text-light)',
+                  mb: 3,
+                }}
+              >
+                Please connect your wallet to access the Website Generator
+              </Typography>
+              <ConnectWallet />
+            </Box>
+          )}
+        </Box>
+
+        {/* Success Dialog */}
+        <StyledDialog
+          open={showSuccessDialog}
+          onClose={() => {
+            setShowSuccessDialog(false);
+            setActiveStep(0);
+          }}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle sx={{ 
+            pb: 1,
+            color: 'var(--primary-color)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1 
+          }}>
+            <Box component="span" sx={{ fontSize: '1.5rem' }}>🎉</Box>
+            Website Generation Started
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography variant="body1" sx={{ color: 'var(--text-color)' }}>
+                The process of generating the web page has started. Please wait a few minutes for it to complete. 
+                You can check your profile to view the page once it's ready.
+              </Typography>
+              {transactionHash && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="subtitle2" sx={{ color: 'var(--text-light)' }} gutterBottom>
+                    Transaction Hash:
+                  </Typography>
+                  <Link
+                    href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ 
+                      wordBreak: 'break-all',
+                      color: 'var(--primary-color)',
+                    }}
+                  >
+                    {transactionHash}
+                  </Link>
+                </Box>
+              )}
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ p: 2, pt: 0 }}>
+            <StyledButton
+              variant="outlined"
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              Close
+            </StyledButton>
+            <StyledButton
+              variant="contained"
+              onClick={handleGoToProfile}
+            >
+              Go to Profile
+            </StyledButton>
+          </DialogActions>
+        </StyledDialog>
+      </Container>
+    </>
   );
 };
 

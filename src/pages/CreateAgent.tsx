@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Stepper,
@@ -30,6 +30,9 @@ import { ArrowBack } from '@mui/icons-material';
 import { blockchainService } from '../services/blockchainService';
 import { BLOCKCHAIN_CONFIG } from '../config/blockchain';
 import { DatabaseService } from '../services/databaseService';
+import { animationService } from '../services/animationService';
+import { Global } from '@emotion/react';
+import { animationStyles } from '../styles/animations';
 
 const steps = [
   'Basic Configuration',
@@ -180,6 +183,38 @@ const CreateAgent = () => {
   const [error, setError] = useState<string | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
   const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  const backgroundRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (backgroundRef.current) {
+      // Initialize stars
+      animationService.createStars(backgroundRef.current);
+      
+      // Initialize parallax
+      const cleanup = animationService.initParallax();
+      
+      // Initialize scroll animations
+      const observer = animationService.initScrollAnimations();
+      
+      // Observe sections
+      const sections = [
+        document.querySelector('.content'),
+        document.querySelector('.steps-section'),
+      ];
+
+      sections.forEach(section => {
+        if (section) {
+          section.classList.add('fade-in');
+          observer.observe(section);
+        }
+      });
+
+      return () => {
+        cleanup();
+        observer.disconnect();
+      };
+    }
+  }, []);
 
   const handleBackToHome = () => {
     navigate('/');
@@ -599,202 +634,206 @@ const CreateAgent = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box sx={{ 
-        mt: 6, 
-        mb: 8,
-        position: 'relative',
-      }}>
+    <>
+      <Global styles={animationStyles} />
+      <div ref={backgroundRef} className="background-animation" />
+      <Container maxWidth="md">
         <Box sx={{ 
-          position: 'absolute',
-          top: '-3rem',
-          left: 0,
+          mt: 6, 
+          mb: 8,
+          position: 'relative',
         }}>
-          <StyledButton
-            onClick={handleBackToHome}
-            startIcon={<ArrowBack />}
-            variant="outlined"
-            sx={{
-              borderColor: 'rgba(0, 0, 0, 0.1)',
-              '&:hover': {
-                borderColor: 'var(--primary-color)',
-                backgroundColor: 'transparent',
-              },
-            }}
+          <Box sx={{ 
+            position: 'absolute',
+            top: '-3rem',
+            left: 0,
+          }}>
+            <StyledButton
+              onClick={handleBackToHome}
+              startIcon={<ArrowBack />}
+              variant="outlined"
+              sx={{
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                '&:hover': {
+                  borderColor: 'var(--primary-color)',
+                  backgroundColor: 'transparent',
+                },
+              }}
+            >
+              Back
+            </StyledButton>
+          </Box>
+
+          <PageTitle variant="h1" align="center">
+            Create AI Agent
+          </PageTitle>
+
+          <StyledStepper 
+            activeStep={activeStep} 
+            alternativeLabel
+            sx={{ mb: 6 }}
           >
-            Back
-          </StyledButton>
-        </Box>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </StyledStepper>
 
-        <PageTitle variant="h1" align="center">
-          Create AI Agent
-        </PageTitle>
-
-        <StyledStepper 
-          activeStep={activeStep} 
-          alternativeLabel
-          sx={{ mb: 6 }}
-        >
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </StyledStepper>
-
-        <StyledPaper>
-          <StyledFormSection>
-            {activeStep === steps.length ? (
-              <Box sx={{ 
-                textAlign: 'center',
-                py: 4,
-              }}>
-                <Typography 
-                  variant="h5" 
-                  gutterBottom
-                  sx={{ 
-                    color: 'success.main',
-                    fontWeight: 600,
-                    mb: 3,
-                  }}
-                >
-                  Your AI Agent has been created successfully!
-                </Typography>
-                {verificationCode && (
-                  <Box sx={{ mt: 2, mb: 3 }}>
-                    <Typography variant="body1" gutterBottom>
-                      Your Verification Code:
-                    </Typography>
-                    <Typography 
-                      variant="h5" 
-                      sx={{ 
-                        fontFamily: 'monospace',
-                        bgcolor: 'background.paper',
-                        p: 2,
-                        borderRadius: 1,
-                        border: '1px dashed',
-                        display: 'inline-block'
-                      }}
-                    >
-                      {verificationCode}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Please Save the code, go to the bot's Telegram group, type /activation, and follow its instructions.
-                    </Typography>
-                  </Box>
-                )}
-                {transactionHash && (
-                  <Box sx={{ mt: 2, mb: 3 }}>
-                    <Typography variant="body1" gutterBottom>
-                      Transaction Hash:
-                    </Typography>
-                    <Link 
-                      href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {transactionHash}
-                    </Link>
-                  </Box>
-                )}
-                <Button 
-                  onClick={() => {
-                    resetForm();
-                    setActiveStep(0);
-                    setTransactionHash(null);
-                  }}
-                  variant="contained"
-                  color="primary"
-                  sx={{ mt: 2 }}
-                >
-                  Create Another Agent
-                </Button>
-              </Box>
-            ) : (
-              <>
-                {error && (
-                  <Box 
-                    sx={{ 
-                      p: 2,
-                      mb: 3,
-                      borderRadius: 1,
-                      backgroundColor: (theme) => 
-                        error.includes('Waiting') || error.includes('Preparing')
-                          ? theme.palette.info.light
-                          : theme.palette.error.light,
-                      color: (theme) =>
-                        error.includes('Waiting') || error.includes('Preparing')
-                          ? theme.palette.info.contrastText
-                          : theme.palette.error.contrastText,
-                    }}
-                  >
-                    <Typography sx={{ whiteSpace: 'pre-line' }}>
-                      {error}
-                    </Typography>
-                  </Box>
-                )}
-
-                {getStepContent(activeStep)}
-                
+          <StyledPaper>
+            <StyledFormSection>
+              {activeStep === steps.length ? (
                 <Box sx={{ 
-                  display: 'flex', 
-                  justifyContent: 'flex-end',
-                  gap: 2,
-                  mt: 4,
-                  pt: 3,
-                  borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                  textAlign: 'center',
+                  py: 4,
                 }}>
-                  <StyledButton
-                    disabled={activeStep === 0}
-                    onClick={handleBack}
-                    variant="outlined"
-                    sx={{
-                      opacity: activeStep === 0 ? 0.5 : 1,
-                      transition: 'opacity 0.2s ease-in-out',
+                  <Typography 
+                    variant="h5" 
+                    gutterBottom
+                    sx={{ 
+                      color: 'success.main',
+                      fontWeight: 600,
+                      mb: 3,
                     }}
                   >
-                    Back
-                  </StyledButton>
-                  {activeStep === steps.length - 1 ? (
-                    <StyledButton
-                      variant="contained"
-                      onClick={handleCreateAgent}
-                      disabled={isProcessing}
-                      sx={{
-                        opacity: isProcessing ? 0.5 : 1,
-                        transition: 'opacity 0.2s ease-in-out',
-                        minWidth: 150
-                      }}
-                    >
-                      {isProcessing ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CircularProgress size={20} color="inherit" />
-                          Processing...
-                        </Box>
-                      ) : (
-                        'Create Agent'
-                      )}
-                    </StyledButton>
-                  ) : (
-                    <StyledButton
-                      variant="contained"
-                      onClick={handleNext}
-                      disabled={!isStepValid(activeStep)}
-                      sx={{
-                        opacity: !isStepValid(activeStep) ? 0.5 : 1,
-                        transition: 'opacity 0.2s ease-in-out',
-                      }}
-                    >
-                      Next
-                    </StyledButton>
+                    Your AI Agent has been created successfully!
+                  </Typography>
+                  {verificationCode && (
+                    <Box sx={{ mt: 2, mb: 3 }}>
+                      <Typography variant="body1" gutterBottom>
+                        Your Verification Code:
+                      </Typography>
+                      <Typography 
+                        variant="h5" 
+                        sx={{ 
+                          fontFamily: 'monospace',
+                          bgcolor: 'background.paper',
+                          p: 2,
+                          borderRadius: 1,
+                          border: '1px dashed',
+                          display: 'inline-block'
+                        }}
+                      >
+                        {verificationCode}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                        Please Save the code, go to the bot's Telegram group, type /activation, and follow its instructions.
+                      </Typography>
+                    </Box>
                   )}
+                  {transactionHash && (
+                    <Box sx={{ mt: 2, mb: 3 }}>
+                      <Typography variant="body1" gutterBottom>
+                        Transaction Hash:
+                      </Typography>
+                      <Link 
+                        href={`https://sepolia.etherscan.io/tx/${transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {transactionHash}
+                      </Link>
+                    </Box>
+                  )}
+                  <Button 
+                    onClick={() => {
+                      resetForm();
+                      setActiveStep(0);
+                      setTransactionHash(null);
+                    }}
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 2 }}
+                  >
+                    Create Another Agent
+                  </Button>
                 </Box>
-              </>
-            )}
-          </StyledFormSection>
-        </StyledPaper>
-      </Box>
-    </Container>
+              ) : (
+                <>
+                  {error && (
+                    <Box 
+                      sx={{ 
+                        p: 2,
+                        mb: 3,
+                        borderRadius: 1,
+                        backgroundColor: (theme) => 
+                          error.includes('Waiting') || error.includes('Preparing')
+                            ? theme.palette.info.light
+                            : theme.palette.error.light,
+                        color: (theme) =>
+                          error.includes('Waiting') || error.includes('Preparing')
+                            ? theme.palette.info.contrastText
+                            : theme.palette.error.contrastText,
+                      }}
+                    >
+                      <Typography sx={{ whiteSpace: 'pre-line' }}>
+                        {error}
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {getStepContent(activeStep)}
+                  
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                    mt: 4,
+                    pt: 3,
+                    borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+                  }}>
+                    <StyledButton
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                      variant="outlined"
+                      sx={{
+                        opacity: activeStep === 0 ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
+                    >
+                      Back
+                    </StyledButton>
+                    {activeStep === steps.length - 1 ? (
+                      <StyledButton
+                        variant="contained"
+                        onClick={handleCreateAgent}
+                        disabled={isProcessing}
+                        sx={{
+                          opacity: isProcessing ? 0.5 : 1,
+                          transition: 'opacity 0.2s ease-in-out',
+                          minWidth: 150
+                        }}
+                      >
+                        {isProcessing ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <CircularProgress size={20} color="inherit" />
+                            Processing...
+                          </Box>
+                        ) : (
+                          'Create Agent'
+                        )}
+                      </StyledButton>
+                    ) : (
+                      <StyledButton
+                        variant="contained"
+                        onClick={handleNext}
+                        disabled={!isStepValid(activeStep)}
+                        sx={{
+                          opacity: !isStepValid(activeStep) ? 0.5 : 1,
+                          transition: 'opacity 0.2s ease-in-out',
+                        }}
+                      >
+                        Next
+                      </StyledButton>
+                    )}
+                  </Box>
+                </>
+              )}
+            </StyledFormSection>
+          </StyledPaper>
+        </Box>
+      </Container>
+    </>
   );
 };
 

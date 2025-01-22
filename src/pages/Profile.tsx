@@ -2,7 +2,7 @@ import { Box, Button, Container, Typography, Card, Grid, Chip, Dialog, DialogTit
 import { useNavigate } from "react-router-dom";
 import ConnectWallet from '../components/ConnectWallet';
 import { useWallet } from '../context/WalletContext';
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DatabaseService } from '../services/databaseService';
 import { BLOCKCHAIN_CONFIG } from '../config/blockchain';
 import { ethers } from 'ethers';
@@ -13,6 +13,9 @@ import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { Tab } from '@mui/material';
 import { ButtonProps } from '@mui/material';
 import { ElementType } from 'react';
+import { animationService } from '../services/animationService';
+import { Global } from '@emotion/react';
+import { animationStyles } from '../styles/animations';
 
 interface Agent {
   id: number;
@@ -239,6 +242,7 @@ const Profile = () => {
   const [loadingWebs, setLoadingWebs] = useState(false);
   const [websError, setWebsError] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('all'); // 'all', 'agents', 'websites'
+  const backgroundRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -272,6 +276,38 @@ const Profile = () => {
 
     fetchUserData();
   }, [isConnected, address]);
+
+  useEffect(() => {
+    if (backgroundRef.current) {
+      // Initialize stars
+      animationService.createStars(backgroundRef.current);
+      
+      // Initialize parallax
+      const cleanup = animationService.initParallax();
+      
+      // Initialize scroll animations
+      const observer = animationService.initScrollAnimations();
+      
+      // Observe sections
+      const sections = [
+        document.querySelector('.content'),
+        document.querySelector('.agents-section'),
+        document.querySelector('.websites-section'),
+      ];
+
+      sections.forEach(section => {
+        if (section) {
+          section.classList.add('fade-in');
+          observer.observe(section);
+        }
+      });
+
+      return () => {
+        cleanup();
+        observer.disconnect();
+      };
+    }
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -894,51 +930,55 @@ const Profile = () => {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ 
-        mt: 6, 
-        mb: 8,
-        position: 'relative',
-      }}>
-        {/* Back button */}
+    <>
+      <Global styles={animationStyles} />
+      <div ref={backgroundRef} className="background-animation" />
+      <Container maxWidth="lg">
         <Box sx={{ 
-          position: 'absolute',
-          top: '-3rem',
-          left: 0,
+          mt: 6, 
+          mb: 8,
+          position: 'relative',
         }}>
-          <StyledButton
-            onClick={() => navigate('/')}
-            startIcon={<ArrowBack />}
-            variant="outlined"
-            sx={{
-              borderColor: 'rgba(0, 0, 0, 0.1)',
-              '&:hover': {
-                borderColor: 'var(--primary-color)',
-                backgroundColor: 'transparent',
-              },
-            }}
-          >
-            Back
-          </StyledButton>
-        </Box>
+          {/* Back button */}
+          <Box sx={{ 
+            position: 'absolute',
+            top: '-3rem',
+            left: 0,
+          }}>
+            <StyledButton
+              onClick={() => navigate('/')}
+              startIcon={<ArrowBack />}
+              variant="outlined"
+              sx={{
+                borderColor: 'rgba(0, 0, 0, 0.1)',
+                '&:hover': {
+                  borderColor: 'var(--primary-color)',
+                  backgroundColor: 'transparent',
+                },
+              }}
+            >
+              Back
+            </StyledButton>
+          </Box>
 
-        {/* Title and Wallet */}
-        <Box sx={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          mb: 6,
-        }}>
-          <StyledTitle>My Profile</StyledTitle>
-          <ConnectWallet />
-        </Box>
+          {/* Title and Wallet */}
+          <Box sx={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            mb: 6,
+          }}>
+            <StyledTitle>My Profile</StyledTitle>
+            <ConnectWallet />
+          </Box>
 
-        {/* Main Content */}
-        {renderContent()}
-      </Box>
-      <AgreementDialog />
-      <DurationDialog />
-    </Container>
+          {/* Main Content */}
+          {renderContent()}
+        </Box>
+        <AgreementDialog />
+        <DurationDialog />
+      </Container>
+    </>
   );
 };
 
