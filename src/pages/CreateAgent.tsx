@@ -90,14 +90,42 @@ const StyledButton = styled(Button)({
   textTransform: 'none',
   fontSize: '1rem',
   fontWeight: 600,
+  transition: 'var(--transition)',
   '&.MuiButton-contained': {
     backgroundColor: 'var(--button-primary)',
     color: 'white',
+    '&:hover': {
+      backgroundColor: '#333333',
+    },
+    '&.Mui-disabled': {
+      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+      color: 'rgba(0, 0, 0, 0.26)',
+    },
+    '&:not(.Mui-disabled)': {
+      backgroundColor: 'var(--button-primary)',
+      color: 'white',
+      '&:hover': {
+        backgroundColor: '#333333',
+      },
+    },
   },
   '&.MuiButton-outlined': {
-    borderColor: 'var(--button-primary)',
-    color: 'var(--primary-color)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+    color: 'rgba(0, 0, 0, 0.26)',
     borderWidth: '2px',
+    '&.Mui-disabled': {
+      borderColor: 'rgba(0, 0, 0, 0.12)',
+      color: 'rgba(0, 0, 0, 0.26)',
+    },
+    '&:not(.Mui-disabled)': {
+      borderColor: 'var(--button-primary)',
+      color: 'var(--button-primary)',
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: '#333333',
+        color: '#333333',
+      },
+    },
   },
 });
 
@@ -720,6 +748,10 @@ const CreateAgent = () => {
                     disabled={activeStep === 0}
                     onClick={handleBack}
                     variant="outlined"
+                    sx={{
+                      opacity: activeStep === 0 ? 0.5 : 1,
+                      transition: 'opacity 0.2s ease-in-out',
+                    }}
                   >
                     Back
                   </StyledButton>
@@ -728,7 +760,11 @@ const CreateAgent = () => {
                       variant="contained"
                       onClick={handleCreateAgent}
                       disabled={isProcessing}
-                      sx={{ minWidth: 150 }}
+                      sx={{
+                        opacity: isProcessing ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                        minWidth: 150
+                      }}
                     >
                       {isProcessing ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -744,6 +780,10 @@ const CreateAgent = () => {
                       variant="contained"
                       onClick={handleNext}
                       disabled={!isStepValid(activeStep)}
+                      sx={{
+                        opacity: !isStepValid(activeStep) ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
                     >
                       Next
                     </StyledButton>

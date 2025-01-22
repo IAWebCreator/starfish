@@ -50,6 +50,25 @@ export const webGeneratorService = {
     }
   },
 
+  // Add this new utility function
+  normalizeUrl(url: string | undefined): string | undefined {
+    if (!url) return undefined;
+    
+    // Clean the URL
+    let cleanUrl = url.trim()
+      .replace(/\/+$/, '') // Remove trailing slashes
+      .replace(/^(?!https?:\/\/)/, 'https://') // Add https:// if missing
+      .toLowerCase();
+
+    // Handle X/Twitter URL normalization
+    if (cleanUrl.includes('x.com/')) {
+      cleanUrl = cleanUrl.replace('x.com/', 'twitter.com/');
+    }
+
+    return cleanUrl;
+  },
+
+  // Update the saveWebData method
   async saveWebData(data: {
     wallet_address: string;
     token_name: string;
@@ -64,16 +83,20 @@ export const webGeneratorService = {
     transaction_id: string;
   }) {
     try {
-      // Add timestamp fields
-      const dataWithTimestamps = {
+      // Normalize all social media URLs
+      const normalizedData = {
         ...data,
+        twitter_url: this.normalizeUrl(data.twitter_url),
+        telegram_url: this.normalizeUrl(data.telegram_url),
+        youtube_url: this.normalizeUrl(data.youtube_url),
+        tiktok_url: this.normalizeUrl(data.tiktok_url),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
       const { error } = await supabase
         .from('web_basic_data')
-        .insert([dataWithTimestamps]);
+        .insert([normalizedData]);
 
       if (error) {
         console.error('Detailed error:', error);

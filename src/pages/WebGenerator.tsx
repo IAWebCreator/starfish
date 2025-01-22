@@ -167,16 +167,27 @@ const TikTokIcon = () => (
 const validateSocialMediaUrl = (url: string, type: string): string => {
   if (!url) return '';
   
+  // Remove trailing slashes and clean URL
+  let cleanUrl = url.trim().replace(/\/+$/, '');
+  
+  // For Instagram, add https:// if missing
+  if (type === 'instagram' && !cleanUrl.startsWith('http')) {
+    cleanUrl = 'https://' + cleanUrl;
+  }
+  
   const patterns = {
-    twitter: /^https?:\/\/(www\.)?twitter\.com\/[a-zA-Z0-9_]{1,15}$/,
-    telegram: /^https?:\/\/(t\.me|telegram\.me)\/[a-zA-Z0-9_]{5,}$/,
-    instagram: /^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]{1,30}$/,
-    youtube: /^https?:\/\/(www\.)?youtube\.com\/@[a-zA-Z0-9_-]+$/,
-    tiktok: /^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_.]{2,24}$/
+    twitter: /^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]{1,15}$/,
+    // Updated telegram pattern to support invitation links with plus signs and random strings
+    telegram: /^https?:\/\/(www\.)?(t\.me|telegram\.me|telegram\.dog)\/(\+[a-zA-Z0-9_-]+|[a-zA-Z0-9_]{5,})$/,
+    // Simplified Instagram pattern to be more flexible
+    instagram: /^(?:https?:\/\/)?((?:www\.)?instagram\.com\/[a-zA-Z0-9._]+)\/?$/,
+    youtube: /^https?:\/\/(www\.)?(youtube\.com\/@[a-zA-Z0-9_-]+|youtube\.com\/channel\/[a-zA-Z0-9_-]+|youtube\.com\/c\/[a-zA-Z0-9_-]+)$/,
+    tiktok: /^https?:\/\/(www\.)?(tiktok\.com\/@[a-zA-Z0-9_.]{2,24}|vm\.tiktok\.com\/[a-zA-Z0-9]+)$/
   };
 
   const pattern = patterns[type as keyof typeof patterns];
-  if (!pattern.test(url)) {
+  
+  if (!pattern.test(cleanUrl)) {
     return `Invalid ${type} URL format`;
   }
   return '';
@@ -204,7 +215,7 @@ const StyledDialog = styled(Dialog)({
   },
 });
 
-// Add StyledButton component
+// Update the StyledButton component
 const StyledButton = styled(Button)({
   padding: '1rem 2rem',
   borderRadius: 'var(--border-radius)',
@@ -218,14 +229,34 @@ const StyledButton = styled(Button)({
     '&:hover': {
       backgroundColor: '#333333',
     },
+    '&.Mui-disabled': {
+      backgroundColor: 'rgba(0, 0, 0, 0.12)',
+      color: 'rgba(0, 0, 0, 0.26)',
+    },
+    '&:not(.Mui-disabled)': {
+      backgroundColor: 'var(--button-primary)',
+      color: 'white',
+      '&:hover': {
+        backgroundColor: '#333333',
+      },
+    },
   },
   '&.MuiButton-outlined': {
-    borderColor: 'var(--button-primary)',
-    color: 'var(--button-primary)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
+    color: 'rgba(0, 0, 0, 0.26)',
     borderWidth: '2px',
-    '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.05)',
-      borderWidth: '2px',
+    '&.Mui-disabled': {
+      borderColor: 'rgba(0, 0, 0, 0.12)',
+      color: 'rgba(0, 0, 0, 0.26)',
+    },
+    '&:not(.Mui-disabled)': {
+      borderColor: 'var(--button-primary)',
+      color: 'var(--button-primary)',
+      '&:hover': {
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
+        borderColor: '#333333',
+        color: '#333333',
+      },
     },
   },
 });
@@ -523,7 +554,8 @@ const WebGenerator = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder="twitter.com/youraccount"
+              placeholder="twitter.com/username or x.com/username"
+              helperText="Enter your X (Twitter) profile URL"
             />
 
             <TextField
@@ -538,7 +570,8 @@ const WebGenerator = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder="t.me/youraccount"
+              placeholder="t.me/username or telegram.me/username"
+              helperText="Enter your Telegram channel or group URL"
             />
 
             <TextField
@@ -568,7 +601,8 @@ const WebGenerator = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder="youtube.com/@yourchannel"
+              placeholder="youtube.com/@channel or youtube.com/c/channel"
+              helperText="Enter your YouTube channel URL"
             />
 
             <TextField
@@ -583,7 +617,8 @@ const WebGenerator = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder="tiktok.com/@youraccount"
+              placeholder="tiktok.com/@username"
+              helperText="Enter your TikTok profile URL"
             />
           </Box>
         );
@@ -728,6 +763,10 @@ const WebGenerator = () => {
                     disabled={activeStep === 0}
                     onClick={handleBack}
                     variant="outlined"
+                    sx={{
+                      opacity: activeStep === 0 ? 0.5 : 1,
+                      transition: 'opacity 0.2s ease-in-out',
+                    }}
                   >
                     Back
                   </StyledButton>
@@ -736,6 +775,10 @@ const WebGenerator = () => {
                       variant="contained"
                       onClick={handleSubmit}
                       disabled={isSubmitting}
+                      sx={{
+                        opacity: isSubmitting ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
                     >
                       {isSubmitting ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -751,6 +794,10 @@ const WebGenerator = () => {
                       variant="contained"
                       onClick={handleNext}
                       disabled={!isStepValid(activeStep)}
+                      sx={{
+                        opacity: !isStepValid(activeStep) ? 0.5 : 1,
+                        transition: 'opacity 0.2s ease-in-out',
+                      }}
                     >
                       Next
                     </StyledButton>
